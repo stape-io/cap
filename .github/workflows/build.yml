@@ -1,6 +1,6 @@
 name: Deploy to Non-production
 
-run-name: Deploy '${{ inputs.component }}' to '${{ inputs.environment }}'
+run-name: Build capjs
 
 on:
   workflow_dispatch:
@@ -49,7 +49,7 @@ jobs:
           context: standalone
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:${{ inputs.version }}
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:3.0.1 #${{ inputs.version }}
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
