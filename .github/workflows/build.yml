@@ -49,7 +49,7 @@ jobs:
           context: standalone
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:3.0.1 #${{ inputs.version }}
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:#3.0.1
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
