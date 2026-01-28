@@ -9,7 +9,6 @@ on:
         type: string
         description: 'semantic version'
         default: "3.0.1"
-  push:
 
 jobs:
   image:
@@ -49,7 +48,7 @@ jobs:
           context: standalone
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:3.0.1
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:${{ inputs.version }}
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
