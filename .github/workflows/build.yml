@@ -1,0 +1,55 @@
+name: Deploy to Non-production
+
+run-name: Deploy '${{ inputs.component }}' to '${{ inputs.environment }}'
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: 'semantic version'
+        default: "3.0.1"
+  push:
+
+jobs:
+  image:
+    name: Build cap.js Docker Image and Push to GAR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REGISTRY: europe-west1-docker.pkg.dev
+      REPOSITORY: gtm-server-69/services
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
+          service_account: github-actions@gtm-server-69.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Login to Google Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: standalone
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/capjs:${{ inputs.version }}
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
