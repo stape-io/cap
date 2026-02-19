@@ -98,7 +98,7 @@ export const capServer = new Elysia({
 
 		const now = Math.floor(Date.now() / 1000);
 		const hourlyBucket = Math.floor(now / 3600) * 3600;
-		if (db.provider === "sqlite" || db.provider === "postgres") {
+		if (db.options.adapter === "sqlite" || db.options.adapter === "postgres") {
 			await db`
 				INSERT INTO solutions (siteKey, bucket, count)
 				VALUES (${params.siteKey}, ${hourlyBucket}, 1)
