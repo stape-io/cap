@@ -94,3 +94,5 @@ debug/
 target/
 **/*.rs.bk
 *.pdb
+.claude
+docker-compose.yml
