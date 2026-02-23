@@ -1,17 +1,10 @@
-name: Deploy to Non-production
+name: Release to Production
 
-run-name: Build capjs-${{ inputs.target_env }} by ${{ github.actor }}
+run-name: Release capjs by ${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      target_env:
-        type: choice
-        description: 'target environment'
-        options:
-          - dev
-          - qa
-        default: dev
       version:
         type: string
         description: 'semantic version'
@@ -19,15 +12,14 @@ on:
 
 jobs:
   precheck:
-    name: Precheck by ${{ github.actor }} for ${{ inputs.target_env }}
+    name: Precheck by ${{ github.actor }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
     env:
       REGISTRY: europe-west1-docker.pkg.dev
-      REPOSITORY: gtm-server-69/services
-      TARGET_ENV: ${{ inputs.target_env }}
+      REPOSITORY: stape-production/services
     outputs:
       image_name: ${{ steps.resolve.outputs.image_name }}
       version: ${{ steps.resolve.outputs.version }}
@@ -40,13 +32,13 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@gtm-server-69.iam.gserviceaccount.com
+          service_account: github-actions@stape-production.iam.gserviceaccount.com
           token_format: access_token
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: gtm-server-69
+          project_id: stape-production
 
       - id: suggest
         name: Suggest next version
@@ -56,8 +48,7 @@ jobs:
           echo "::group::Suggest version context"
           echo "Registry: ${REGISTRY}"
           echo "Repository: ${REPOSITORY}"
-          echo "Target env: ${TARGET_ENV}"
-          IMAGE="${REGISTRY}/${REPOSITORY}/capjs-${TARGET_ENV}"
+          IMAGE="${REGISTRY}/${REPOSITORY}/capjs"
           echo "Image: ${IMAGE}"
           echo "gcloud: $(gcloud --version | head -n1)"
           echo "Project: ${CLOUDSDK_CORE_PROJECT:-${CLOUDSDK_PROJECT:-unknown}}"
@@ -94,7 +85,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          IMAGE_NAME="capjs-${TARGET_ENV}"
+          IMAGE_NAME="capjs"
           if [ -z "${{ inputs.version }}" ]; then
             VERSION="${{ steps.suggest.outputs.suggested }}"
             MANUAL="false"
@@ -113,7 +104,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          IMAGE="${REGISTRY}/${REPOSITORY}/capjs-${TARGET_ENV}"
+          IMAGE="${REGISTRY}/${REPOSITORY}/capjs"
           TAG="${{ steps.resolve.outputs.version }}"
           if gcloud artifacts docker images list "$IMAGE" --include-tags --format='value(tags)' \
             | tr ',;' '\n' \
@@ -134,7 +125,6 @@ jobs:
           EXISTS="${{ steps.check.outputs.tag_exists }}"
           VERSION="${{ steps.resolve.outputs.version }}"
           IMAGE_NAME="${{ steps.resolve.outputs.image_name }}"
-          TARGET_ENV="${{ inputs.target_env }}"
           if [ "$MANUAL" = "true" ] && [ "$EXISTS" = "true" ]; then
             echo "require_approval=true" >> "$GITHUB_OUTPUT"
             echo "Approval required: manual version exists already." >> "$GITHUB_STEP_SUMMARY"
@@ -144,7 +134,6 @@ jobs:
           fi
           {
             echo ""
-            echo "Target env: ${TARGET_ENV}"
             echo "Image name: ${IMAGE_NAME}"
             echo "Final version: ${VERSION}"
             echo "Manual version: ${MANUAL}"
@@ -153,18 +142,17 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   image:
-    name: Build by ${{ github.actor }} for ${{ inputs.target_env }}
+    name: Build by ${{ github.actor }}
     runs-on: ubuntu-latest
     needs: precheck
     environment:
-      name: ${{ needs.precheck.outputs.require_approval == 'true' && 'devops-approval' || 'auto' }}
+      name: ${{ needs.precheck.outputs.require_approval == 'true' && 'prod-approval' || 'auto' }}
     permissions:
       contents: read
       id-token: write
     env:
       REGISTRY: europe-west1-docker.pkg.dev
-      REPOSITORY: gtm-server-69/services
-      TARGET_ENV: ${{ inputs.target_env }}
+      REPOSITORY: stape-production/services
       IMAGE_NAME: ${{ needs.precheck.outputs.image_name }}
       VERSION: ${{ needs.precheck.outputs.version }}
       TAG_EXISTS: ${{ needs.precheck.outputs.tag_exists }}
@@ -185,7 +173,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@gtm-server-69.iam.gserviceaccount.com
+          service_account: github-actions@stape-production.iam.gserviceaccount.com
           token_format: access_token
 
       - name: Login to Google Artifact Registry
