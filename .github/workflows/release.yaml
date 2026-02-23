@@ -31,7 +31,7 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
+          workload_identity_provider: projects/207001532273/locations/global/workloadIdentityPools/github/providers/stape-io
           service_account: github-actions@stape-production.iam.gserviceaccount.com
           token_format: access_token
 
@@ -172,7 +172,7 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
+          workload_identity_provider: projects/207001532273/locations/global/workloadIdentityPools/github/providers/stape-io
           service_account: github-actions@stape-production.iam.gserviceaccount.com
           token_format: access_token
 
