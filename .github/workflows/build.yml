@@ -31,7 +31,7 @@ jobs:
       TARGET_ENV: ${{ inputs.target_env }}
       GCP_PROJECT_ID: ${{ contains(fromJson('["dev","qa"]'), inputs.target_env) && 'gtm-server-69' || 'stape-development' }}
       GCP_PROJECT_NUMBER: ${{ contains(fromJson('["dev","qa"]'), inputs.target_env) && '492147627914' || '664050025753' }}
-      REPOSITORY: ${{ contains(fromJson('["dev","qa"]'), inputs.target_env) && 'gtm-server-69/services' || 'stape-development/stape' }}
+      REPOSITORY: ${{ contains(fromJson('["dev","qa"]'), inputs.target_env) && 'gtm-server-69/services' || 'stape-development/services' }}
     outputs:
       image_name: ${{ steps.resolve.outputs.image_name }}
       version: ${{ steps.resolve.outputs.version }}
