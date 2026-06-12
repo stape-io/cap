@@ -11,11 +11,20 @@ on:
         options:
           - dev
           - qa
+          - sh
+          - re
         default: dev
       version:
         type: string
         description: 'semantic version'
         default: ""
+
+env:
+  REGISTRY: europe-west1-docker.pkg.dev
+  TARGET_ENV: ${{ github.event.inputs.target_env }}
+  GCP_PROJECT_ID: ${{ contains(fromJson('["dev","qa"]'), github.event.inputs.target_env) && 'gtm-server-69' || 'stape-development' }}
+  GCP_PROJECT_NUMBER: ${{ contains(fromJson('["dev","qa"]'), github.event.inputs.target_env) && '492147627914' || '664050025753' }}
+  REPOSITORY: ${{ contains(fromJson('["dev","qa"]'), github.event.inputs.target_env) && 'gtm-server-69/services' || 'stape-development/services' }}
 
 jobs:
   precheck:
@@ -24,10 +33,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      REGISTRY: europe-west1-docker.pkg.dev
-      REPOSITORY: gtm-server-69/services
-      TARGET_ENV: ${{ inputs.target_env }}
     outputs:
       image_name: ${{ steps.resolve.outputs.image_name }}
       version: ${{ steps.resolve.outputs.version }}
@@ -39,14 +44,14 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@gtm-server-69.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/stape-io
+          service_account: github-actions@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
           token_format: access_token
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: gtm-server-69
+          project_id: ${{ env.GCP_PROJECT_ID }}
 
       - id: suggest
         name: Suggest next version
@@ -162,9 +167,6 @@ jobs:
       contents: read
       id-token: write
     env:
-      REGISTRY: europe-west1-docker.pkg.dev
-      REPOSITORY: gtm-server-69/services
-      TARGET_ENV: ${{ inputs.target_env }}
       IMAGE_NAME: ${{ needs.precheck.outputs.image_name }}
       VERSION: ${{ needs.precheck.outputs.version }}
       TAG_EXISTS: ${{ needs.precheck.outputs.tag_exists }}
@@ -184,8 +186,8 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/492147627914/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@gtm-server-69.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/stape-io
+          service_account: github-actions@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
           token_format: access_token
 
       - name: Login to Google Artifact Registry
